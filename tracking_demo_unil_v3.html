@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Track Shipment</title>
+
+  <!-- Font (change to match your site if you want) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /*
+      THEME TOKENS (plain-English):
+      These are just "site colors + fonts" in one place.
+      If you ever want to change the whole look, edit ONLY these values
+      and the whole page updates automatically.
+    */
+    :root{
+      --brand-primary:#0f4c81;   /* main brand color */
+      --brand-accent:#f2b705;    /* button/highlight */
+      --brand-ink:#0b1b2b;       /* main text */
+      --bg:#f7f9fc;              /* page background */
+      --card:#ffffff;            /* card background */
+      --muted:#607089;           /* muted text */
+      --border:rgba(15, 27, 43, .10);
+      --shadow:0 12px 30px rgba(15, 27, 43, .10);
+
+      --ok:#1e9e63;
+      --warn:#f0a000;
+      --bad:#d93b3b;
+
+      --radius:16px;
+      --radius-sm:12px;
+
+      --font:"Poppins", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:var(--font);
+      color: var(--brand-ink);
+      background:
+        radial-gradient(900px 520px at 0% 0%, rgba(15,76,129,.10), transparent 55%),
+        radial-gradient(900px 520px at 100% 0%, rgba(242,183,5,.12), transparent 55%),
+        var(--bg);
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      padding:28px 16px 56px;
+    }
+    .wrap{ width:min(1120px, 100%); }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:18px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      padding:10px 14px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      background: rgba(255,255,255,.78);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+    .mark{
+      width:34px; height:34px; border-radius:10px;
+      background: linear-gradient(135deg, var(--brand-primary), rgba(15,76,129,.65));
+      position:relative; overflow:hidden;
+    }
+    .mark:after{
+      content:"";
+      position:absolute; inset:-6px -10px auto auto;
+      width:28px; height:28px;
+      background: rgba(242,183,5,.85);
+      transform: rotate(18deg);
+      border-radius:10px;
+    }
+    .brand h1{ font-size:14px; margin:0; letter-spacing:.2px; }
+    .brand span{ color:var(--muted); font-size:12px; }
+
+    .help{
+      color: var(--brand-primary);
+      font-weight:600;
+      font-size:12px;
+      text-decoration:none;
+      border:1px solid var(--border);
+      padding:10px 12px;
+      border-radius:999px;
+      background: rgba(255,255,255,.78);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+    }
+    .help:hover{ border-color: rgba(15,76,129,.30); }
+
+    .hero{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.82);
+      box-shadow: var(--shadow);
+      padding:18px;
+      margin-bottom:16px;
+      backdrop-filter: blur(6px);
+    }
+    .trackbar{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:flex-end;
+    }
+    .trackbar label{
+      font-size:12px; color:var(--muted);
+      display:block; margin-bottom:6px;
+      font-weight:600;
+    }
+    .field{ flex: 1 1 520px; min-width: 240px; }
+    input[type="text"]{
+      width:100%;
+      padding:14px 14px;
+      border-radius: 12px;
+      border:1px solid var(--border);
+      background: #ffffff;
+      color: var(--brand-ink);
+      outline:none;
+      font-family: var(--mono);
+      letter-spacing:.2px;
+    }
+    input[type="text"]::placeholder{ color: rgba(96,112,137,.75); }
+    input[type="text"]:focus{
+      border-color: rgba(15,76,129,.45);
+      box-shadow: 0 0 0 4px rgba(15,76,129,.12);
+    }
+    button{
+      appearance:none;
+      border:1px solid rgba(242,183,5,.65);
+      background: linear-gradient(180deg, rgba(242,183,5,1), rgba(242,183,5,.88));
+      color:#1a1400;
+      font-weight:800;
+      padding:14px 16px;
+      border-radius: 12px;
+      cursor:pointer;
+      min-width: 130px;
+    }
+    button:hover{ filter: brightness(1.02); }
+    button:active{ transform: translateY(1px); }
+
+    .note{
+      margin-top:10px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:14px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns:1fr; }
+    }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.82);
+      box-shadow: var(--shadow);
+      padding:16px;
+      backdrop-filter: blur(6px);
+    }
+    .card h2{
+      margin:0 0 12px;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+
+    .toprow{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .tracking-id{
+      font-family: var(--mono);
+      font-size:13px;
+      letter-spacing:.25px;
+      padding:8px 10px;
+      border-radius: 999px;
+      border:1px solid var(--border);
+      background: #fff;
+      color: var(--brand-ink);
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px;
+      padding:8px 10px;
+      border-radius:999px;
+      background: #fff;
+      border:1px solid var(--border);
+      font-weight:600;
+      color: var(--brand-ink);
+    }
+    .pill .b{ width:8px; height:8px; border-radius:50%; background: var(--warn); }
+    .pill.ok .b{ background: var(--ok); }
+    .pill.bad .b{ background: var(--bad); }
+
+    .summary{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      margin-top:10px;
+    }
+    @media (max-width: 560px){
+      .summary{ grid-template-columns:1fr; }
+    }
+    .kv{
+      border:1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      padding:12px;
+    }
+    .kv .k{
+      color:var(--muted);
+      font-size:11px;
+      margin-bottom:6px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    .kv .v{ font-size:13px; line-height:1.35; }
+    .kv .v strong{ font-weight:700; }
+    .kv .v .mono{ font-family: var(--mono); }
+
+    .timeline{ margin-top:12px; }
+    .step{
+      display:grid;
+      grid-template-columns: 18px 1fr auto;
+      gap:10px;
+      padding:10px 0;
+      border-top:1px solid var(--border);
+    }
+    .step:first-child{ border-top:0; }
+    .dot2{
+      width:12px; height:12px; border-radius:50%;
+      margin-top:4px;
+      background: rgba(15,27,43,.20);
+      border:2px solid rgba(15,27,43,.10);
+    }
+    .step.done .dot2{ background: var(--ok); border-color: rgba(30,158,99,.28); }
+    .step.now .dot2{
+      background: var(--brand-accent);
+      border-color: rgba(242,183,5,.55);
+      box-shadow:0 0 0 6px rgba(242,183,5,.18);
+    }
+    .step .title{ font-weight:700; font-size:13px; }
+    .step .sub{ color:var(--muted); font-size:12px; margin-top:2px; }
+    .step .time{ color:var(--muted); font-size:12px; white-space:nowrap; }
+
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
+      overflow:hidden;
+      border:1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: #fff;
+    }
+    th, td{
+      padding:12px 10px;
+      text-align:left;
+      border-bottom:1px solid var(--border);
+      font-size:12px;
+      vertical-align:top;
+    }
+    th{ color:var(--muted); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:.4px; }
+    tr:last-child td{ border-bottom:0; }
+
+    .empty{
+      color:var(--muted);
+      font-size:13px;
+      padding:16px;
+      border:1px dashed rgba(15,27,43,.20);
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,.60);
+    }
+
+    .mapbox{
+      border:1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: linear-gradient(180deg, rgba(15,76,129,.10), rgba(255,255,255,1));
+      padding:12px;
+      overflow:hidden;
+    }
+    .mapframe{
+      width:100%;
+      height:260px;
+      border:0;
+      border-radius: 12px;
+      background:#e9eef7;
+    }
+    .mapmeta{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:space-between; align-items:center;
+      margin-top:10px;
+      color: var(--muted);
+      font-size:12px;
+    }
+    .mapmeta a{
+      color: var(--brand-primary);
+      font-weight:700;
+      text-decoration:none;
+    }
+    .mapmeta a:hover{ text-decoration:underline; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand" aria-label="Tracking">
+        <span class="mark" aria-hidden="true"></span>
+        <div>
+          <h1>Shipment Tracking <span>• customer portal</span></h1>
+        </div>
+      </div>
+      <a class="help" href="#" onclick="alert('Replace with your support link.'); return false;">Help / Support</a>
+    </header>
+
+    <section class="hero" aria-label="Track a package">
+      <div class="trackbar">
+        <div class="field">
+          <label for="tn">Tracking number</label>
+          <input id="tn" type="text" inputmode="text" autocomplete="off"
+                 placeholder="e.g., UNIL-7281-0492-AB" />
+        </div>
+        <button id="btnTrack" type="button">Track</button>
+      </div>
+      <div class="note">
+        Demo UI: enter <strong>UNIL-7281-0492-AB</strong> to populate the page. Replace demo data with your backend/API response.
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card" aria-label="Shipment status">
+        <div class="toprow">
+          <div>
+            <h2 style="margin-bottom:6px;">Shipment overview</h2>
+            <div id="statusPill" class="pill"><span class="b"></span><span id="statusText">Enter a tracking number</span></div>
+          </div>
+          <div id="trackingId" class="tracking-id" style="display:none;"></div>
+        </div>
+
+        <div id="summary" class="summary" style="display:none;">
+          <div class="kv">
+            <div class="k">Sender (Shipper)</div>
+            <div class="v" id="sender"></div>
+          </div>
+          <div class="kv">
+            <div class="k">Receiver (Consignee)</div>
+            <div class="v" id="receiver"></div>
+          </div>
+
+          <div class="kv">
+            <div class="k">Destination address</div>
+            <div class="v" id="destAddress"></div>
+          </div>
+          <div class="kv">
+            <div class="k">Service</div>
+            <div class="v" id="service"></div>
+          </div>
+
+          <div class="kv">
+            <div class="k">Package weight</div>
+            <div class="v" id="weight"></div>
+          </div>
+          <div class="kv">
+            <div class="k">Reference number</div>
+            <div class="v"><span class="mono" id="reference"></span></div>
+          </div>
+
+          <div class="kv">
+            <div class="k">Origin</div>
+            <div class="v" id="from"></div>
+          </div>
+          <div class="kv">
+            <div class="k">Estimated delivery</div>
+            <div class="v" id="eta"></div>
+          </div>
+
+          <div class="kv" style="grid-column: 1 / -1;">
+            <div class="k">Proof of delivery</div>
+            <div class="v" id="pod"></div>
+          </div>
+        </div>
+
+        <div id="timeline" class="timeline" style="display:none;"></div>
+        <div id="emptyLeft" class="empty">Track a shipment to view progress updates.</div>
+      </section>
+
+      <section class="card" aria-label="Shipment details">
+        <h2>Map view</h2>
+        <div id="mapWrap" class="mapbox">
+          <iframe id="mapFrame" class="mapframe" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Shipment map"></iframe>
+          <div class="mapmeta">
+            <div>Last known: <strong id="lastKnown">—</strong></div>
+            <a id="openMap" href="#" target="_blank" rel="noopener">Open in Maps</a>
+          </div>
+        </div>
+        <div id="mapFallback" class="empty" style="display:none; margin-top:10px;">Map couldn’t load here. Use the “Open in Maps” link above.</div>
+
+        <div style="height:14px;"></div>
+
+        <h2>Scan history</h2>
+        <div id="historyWrap">
+          <div class="empty">No tracking data yet.</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const DEMO = {
+      "UNIL-7281-0492-AB": {
+        trackingNumber: "UNIL-7281-0492-AB",
+        status: { label: "In transit", type: "warn" },
+
+        sender: `<strong>Michael Reynolds</strong><br>Reynolds Tech Supply<br>1200 Market Street<br>San Francisco, CA 94102, USA`,
+        receiver: `<strong>Emma Carter</strong><br>Carter Imports LLC`,
+        destAddress: `742 Evergreen Terrace<br>Springfield, IL 62704, USA`,
+
+        from: "San Francisco, CA, USA",
+        service: "Priority International",
+        eta: "Tue, Feb 10, 2026",
+
+        weight: "3.8 kg (8.4 lb)",
+        reference: "PO-884193-IL",
+        pod: `Not available yet. Proof of delivery will appear after delivery.`,
+
+        lastKnown: { label: "Denver, CO", lat: 39.7392, lng: -104.9903 },
+
+        milestones: [
+          { title: "Shipment information received", sub: "Order details submitted", time: "Feb 07, 2026 • 08:12", state: "done" },
+          { title: "Picked up", sub: "Collected from shipper", time: "Feb 07, 2026 • 14:37", state: "done" },
+          { title: "Processed at origin", sub: "Sorted and prepared for transit", time: "Feb 07, 2026 • 21:05", state: "done" },
+          { title: "In transit", sub: "Moving through the network", time: "Feb 08, 2026 • 10:44", state: "now" },
+          { title: "Out for delivery", sub: "Courier is delivering", time: "—", state: "todo" },
+          { title: "Delivered", sub: "Delivered to recipient", time: "—", state: "todo" },
+        ],
+        events: [
+          { date: "Feb 08, 2026 10:44", location: "Denver, CO", details: "In transit to destination facility" },
+          { date: "Feb 07, 2026 21:05", location: "San Francisco, CA", details: "Processed at origin facility" },
+          { date: "Feb 07, 2026 14:37", location: "San Francisco, CA", details: "Picked up from shipper" },
+          { date: "Feb 07, 2026 08:12", location: "Online", details: "Shipment information received" }
+        ]
+      }
+    };
+
+    const el = (id) => document.getElementById(id);
+
+    function setPill(type, text){
+      const pill = el("statusPill");
+      pill.classList.remove("ok","bad");
+      if(type === "ok") pill.classList.add("ok");
+      if(type === "bad") pill.classList.add("bad");
+      el("statusText").textContent = text;
+    }
+
+    function renderTimeline(milestones){
+      const wrap = el("timeline");
+      wrap.innerHTML = "";
+      milestones.forEach(m => {
+        const row = document.createElement("div");
+        row.className = "step " + (m.state === "done" ? "done" : m.state === "now" ? "now" : "");
+        row.innerHTML = `
+          <div class="dot2" aria-hidden="true"></div>
+          <div>
+            <div class="title">${escapeHtml(m.title)}</div>
+            <div class="sub">${escapeHtml(m.sub)}</div>
+          </div>
+          <div class="time">${escapeHtml(m.time)}</div>
+        `;
+        wrap.appendChild(row);
+      });
+    }
+
+    function renderHistory(events){
+      const host = el("historyWrap");
+      host.innerHTML = `
+        <table aria-label="Tracking event history">
+          <thead>
+            <tr>
+              <th style="width:36%;">Date &amp; time</th>
+              <th style="width:22%;">Location</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${events.map(e => `
+              <tr>
+                <td><span style="font-family:var(--mono)">${escapeHtml(e.date)}</span></td>
+                <td>${escapeHtml(e.location)}</td>
+                <td>${escapeHtml(e.details)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function setMap(lastKnown){
+      const { lat, lng, label } = lastKnown || {};
+      const frame = el("mapFrame");
+      const fallback = el("mapFallback");
+
+      // hide fallback by default
+      if(fallback) fallback.style.display = "none";
+
+      if(typeof lat !== "number" || typeof lng !== "number"){
+        frame.srcdoc = `<div style="font-family:var(--font);padding:16px;color:#607089;">No map data.</div>`;
+        el("lastKnown").textContent = "—";
+        el("openMap").href = "#";
+        return;
+      }
+
+      // Google Maps embed (no API key needed for basic embed)
+      frame.src = `https://www.google.com/maps?q=${lat},${lng}&z=10&output=embed`;
+
+      el("lastKnown").textContent = label || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      el("openMap").href = `https://www.google.com/maps?q=${lat},${lng}`;
+
+      // Graceful fallback message (some environments block iframes)
+      window.setTimeout(() => {
+        if(fallback) fallback.style.display = "block";
+      }, 1200);
+    }
+
+    function showShipment(data){
+      el("trackingId").style.display = "block";
+      el("trackingId").textContent = data.trackingNumber;
+
+      el("summary").style.display = "grid";
+      el("timeline").style.display = "block";
+      el("emptyLeft").style.display = "none";
+
+      el("sender").innerHTML = data.sender;
+      el("receiver").innerHTML = data.receiver;
+      el("destAddress").innerHTML = data.destAddress;
+
+      el("from").textContent = data.from;
+      el("service").textContent = data.service;
+      el("eta").textContent = data.eta;
+
+      el("weight").textContent = data.weight || "—";
+      el("reference").textContent = data.reference || "—";
+      el("pod").innerHTML = data.pod || "—";
+
+      const type = data.status.type === "ok" ? "ok" : data.status.type === "bad" ? "bad" : "warn";
+      setPill(type, data.status.label);
+
+      renderTimeline(data.milestones || []);
+      renderHistory(data.events || []);
+      setMap(data.lastKnown);
+    }
+
+    function showNotFound(trackingNumber){
+      el("trackingId").style.display = trackingNumber ? "block" : "none";
+      el("trackingId").textContent = trackingNumber || "";
+
+      el("summary").style.display = "none";
+      el("timeline").style.display = "none";
+      el("emptyLeft").style.display = "block";
+      el("historyWrap").innerHTML = `<div class="empty">No results found for that tracking number.</div>`;
+      setPill("bad", "Not found");
+
+      el("mapFrame").srcdoc = `<div style="font-family:var(--font);padding:16px;color:#607089;">No map available.</div>`;
+      el("lastKnown").textContent = "—";
+      el("openMap").href = "#";
+    }
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[s]));
+    }
+
+    function handleTrack(){
+      const tn = el("tn").value.trim();
+      if(!tn){
+        showNotFound("");
+        setPill("warn", "Enter a tracking number");
+        el("historyWrap").innerHTML = `<div class="empty">No tracking data yet.</div>`;
+        return;
+      }
+
+      const data = DEMO[tn];
+      if(data) showShipment(data);
+      else showNotFound(tn);
+    }
+
+    el("btnTrack").addEventListener("click", handleTrack);
+    el("tn").addEventListener("keydown", (e) => {
+      if(e.key === "Enter") handleTrack();
+    });
+
+    el("mapFrame").srcdoc = `<div style="font-family:var(--font);padding:16px;color:#607089;">Enter a tracking number to view map.</div>`;
+  </script>
+</body>
+</html>
